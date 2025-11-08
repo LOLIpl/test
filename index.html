@@ -1,651 +1,180 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="pl">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>PRL - Liga Esportowa gry Rematch</title>
-  <link rel="stylesheet" href="style.css" />
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Konwerter liter ↔ cyfry</title>
   <style>
-    #history-content, #lower-history-content {
-      max-height: 700px;
-      overflow-y: auto;
-      background: #01140d;
-      padding: 15px;
-      border-radius: 8px;
-      box-shadow: inset 0 0 15px #00ff8850;
-      font-family: monospace;
-      color: #a0f2af;
-      user-select: text;
-      line-height: 1.4;
-      font-size: 1rem;
-    }
-    table {
-      font-size: 0.9rem;
-      table-layout: fixed;
-    }
-    td:nth-child(2) {
-      width: 200px;
-      text-align: left;
-    }
-    .skill-bar {
-      width: 100px;
-      height: 10px;
-      background: #333;
-      display: inline-block;
-      vertical-align: middle;
-      margin-left: 10px;
-      border-radius: 5px;
-      overflow: hidden;
-    }
-    .skill-fill {
-      height: 100%;
-      background: linear-gradient(90deg, #ff8a00, #ff0058);
-    }
-    .match-calendar {
-      margin-top: 20px;
-    }
-    .match-day {
-      margin-bottom: 15px;
-      background: #15212b;
-      padding: 10px;
-      border-radius: 8px;
-    }
-    .match {
-      display: flex;
-      justify-content: space-between;
-      padding: 5px 0;
-      border-bottom: 1px solid #2a3a4a;
-      font-weight: 600;
-    }
-    .match span:first-child {
-      color: #00ff88;
-    }
-    .match span:last-child {
-      color: #ff5555;
-    }
-    .match-result {
-      font-style: italic;
-      color: #aaa;
-      text-align: center;
-      margin-top: 5px;
-    }
+    :root{font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;}
+    body{display:flex;align-items:center;justify-content:center;min-height:100vh;background:#f6f8fb;margin:0;padding:24px}
+    .card{width:100%;max-width:880px;background:white;border-radius:14px;box-shadow:0 6px 30px rgba(17,24,39,0.08);padding:22px}
+    h1{font-size:20px;margin:0 0 12px}
+    p{margin:0 0 18px;color:#374151}
+    .row{display:flex;gap:12px}
+    textarea{width:100%;min-height:130px;padding:12px;border-radius:10px;border:1px solid #e6edf3;font-size:15px;resize:vertical}
+    .controls{display:flex;gap:8px;flex-wrap:wrap}
+    button{background:#0b5fff;color:#fff;border:0;padding:10px 14px;border-radius:10px;cursor:pointer;font-weight:600}
+    button.secondary{background:#eef2ff;color:#0b3bff}
+    button.ghost{background:transparent;color:#0b3bff;border:1px solid #dbeafe}
+    .flex{display:flex;gap:12px}
+    .panel{flex:1;display:flex;flex-direction:column}
+    .label{font-size:13px;color:#374151;margin-bottom:8px}
+    .mapping{background:#f8fafc;border-radius:8px;padding:10px;font-family:monospace;font-size:13px;color:#111827}
+    footer{margin-top:14px;display:flex;justify-content:space-between;align-items:center}
+    .small{font-size:13px;color:#6b7280}
+    @media (max-width:760px){.row{flex-direction:column}}
   </style>
 </head>
 <body>
-  <header>PRL - Liga Esportowa gry Rematch</header>
+  <div class="card">
+    <h1>Konwerter liter ↔ cyfry</h1>
+    <p>Konwertuj litery alfabetu łacińskiego na cyfry (a=1, b=2, ... z=26) i odwrotnie. Nie zmienia znaków niealfabetycznych.</p>
 
-  <div class="tabs">
-    <div class="tab active" data-tab="league">Ekstraliga</div>
-    <div class="tab" data-tab="lower-league">1 Liga</div>
-    <div class="tab" data-tab="calendar">Kalendarz</div>
-    <div class="tab" data-tab="history">Historia Ekstraligi</div>
-    <div class="tab" data-tab="lower-history">Historia 1 Ligi</div>
-    <div class="tab" data-tab="contact">Kontakt</div>
-    <div class="tab" data-tab="rules">Regulamin</div>
+    <div class="row">
+      <div class="panel">
+        <div class="label">Wejście</div>
+        <textarea id="input" placeholder="Wpisz tekst tutaj... (np. 'abc' lub '123')"></textarea>
+
+        <div style="height:8px"></div>
+        <div class="controls">
+          <button id="lettersToNumbers">Litery → cyfry</button>
+          <button id="numbersToLetters" class="secondary">Cyfry → litery</button>
+          <button id="clear" class="ghost">Wyczyść</button>
+        </div>
+      </div>
+
+      <div style="width:18px"></div>
+
+      <div class="panel">
+        <div class="label">Wynik</div>
+        <textarea id="output" readonly placeholder="Wynik pojawi się tutaj..."></textarea>
+
+        <div style="height:8px"></div>
+        <div class="controls">
+          <button id="copy">Kopiuj wynik</button>
+          <button id="download" class="secondary">Pobierz jako .txt</button>
+        </div>
+
+        <div style="height:12px"></div>
+        <div class="label">Mapowanie</div>
+        <div class="mapping" id="map">
+          a=1, b=2, c=3, d=4, e=5, f=6, g=7, h=8, i=9, j=10, k=11, l=12, m=13, n=14, o=15, p=16, q=17, r=18, s=19, t=20, u=21, v=22, w=23, x=24, y=25, z=26
+        </div>
+      </div>
+    </div>
+
+    <footer>
+      <div class="small">Obsługuje małe/wielkie litery. Przy konwersji cyfr oczekuje listy liczb bez spacji.</div>
+      <div class="small">Wersja: 1.1</div>
+    </footer>
   </div>
 
-  <main>
-    <section id="league" class="tab-content active">
-      <h2 id="league-title">Aktualna tabela Ekstraligi - Sezon 1</h2>
-      <div class="buttons">
-        <button onclick="simulateRound()">Symuluj kolejkę</button>
-        <button onclick="simulateMainSeason()">Symuluj sezon</button>
-        <button onclick="nextSeason()">Następny sezon</button>
-      </div>
-      <table>
-        <thead>
-          <tr>
-            <th>Pozycja</th>
-            <th>Drużyna</th>
-            <th>Rozegrane</th>
-            <th>Punkty</th>
-            <th>Wygrane</th>
-            <th>Przegrane</th>
-            <th>Poziom</th>
-          </tr>
-        </thead>
-        <tbody id="main-table"></tbody>
-      </table>
-    </section>
+<script>
+function letterToNumber(ch){
+  if(!ch) return '';
+  const c = ch.toLowerCase();
+  if(c >= 'a' && c <= 'z') return (c.charCodeAt(0) - 96).toString();
+  return ch;
+}
 
-    <section id="lower-league" class="tab-content">
-      <h2 id="lower-league-title">Aktualna tabela 1 Ligi - Sezon 1</h2>
-      <div class="buttons">
-        <button onclick="simulateLowerRound()">Symuluj kolejkę</button>
-        <button onclick="simulateLowerSeason()">Symuluj sezon</button>
-      </div>
-      <table>
-        <thead>
-          <tr>
-            <th>Pozycja</th>
-            <th>Drużyna</th>
-            <th>Rozegrane</th>
-            <th>Punkty</th>
-            <th>Wygrane</th>
-            <th>Przegrane</th>
-            <th>Poziom</th>
-          </tr>
-        </thead>
-        <tbody id="lower-table"></tbody>
-      </table>
-    </section>
+function numberToLetter(token){
+  const n = Number(token);
+  if(Number.isInteger(n) && n >= 1 && n <= 26){
+    return String.fromCharCode(96 + n);
+  }
+  return token;
+}
 
-    <section id="calendar" class="tab-content">
-      <h2>Kalendarz meczowy</h2>
-      <div class="buttons">
-        <button onclick="showCurrentRound()">Aktualna kolejka</button>
-        <button onclick="showAllCalendar()">Cały sezon</button>
-      </div>
-      <div id="calendar-content" class="match-calendar"></div>
-    </section>
-
-    <section id="history" class="tab-content">
-      <h2>Historia sezonów Ekstraligi</h2>
-      <div id="history-content">Brak historii...</div>
-    </section>
-
-    <section id="lower-history" class="tab-content">
-      <h2>Historia sezonów 1 Ligi</h2>
-      <div id="lower-history-content">Brak historii...</div>
-    </section>
-
-    <section id="contact" class="tab-content">
-      <h2>Kontakt</h2>
-      <p>Telefon: +48 123 456 789</p>
-      <p>Email: kontakt@prlliga.esport</p>
-      <p>Adres: Ul. E-sportowa 10, 00-100 Warszawa</p>
-      <p>Godziny pracy: Pon-Pt 9:00 - 17:00</p>
-    </section>
-
-    <section id="rules" class="tab-content">
-      <h2>Regulamin Ligi PRL</h2>
-      <ul>
-        <li>1. Nie wolno oszukiwać ani sabotować meczów lub ich wyników.</li>
-        <li>2. Obowiązuje fair play i szacunek wobec innych graczy oraz organizatorów.</li>
-        <li>3. Każdy zawodnik musi przestrzegać zasad gry Rematch i wytycznych turnieju.</li>
-        <li>4. Organizatorzy zastrzegają sobie prawo do dyskwalifikacji za złamanie regulaminu.</li>
-        <li>5. Niedozwolone jest używanie niedozwolonych programów lub sprzętu wspomagającego.</li>
-        <li>6. Każda drużyna musi zgłosić się do ligi przed rozpoczęciem sezonu.</li>
-        <li>7. Wyniki meczów muszą być potwierdzone przez sędziego lub organizatora.</li>
-        <li>8. Organizatorzy zastrzegają sobie prawo do zmiany regulaminu.</li>
-        <li>9. W przypadku sporów ostateczna decyzja należy do organizatorów.</li>
-        <li>10. Zakazane jest zachowanie obraźliwe, w tym język nienawiści i trolling.</li>
-      </ul>
-    </section>
-  </main>
-
-  <footer>
-    <div>PRL Liga Esportowa gry Rematch &copy; 2025 | Twój e-sportowy świat</div>
-    <div class="sponsors">
-      <div class="sponsor techpower">TechPower</div>
-      <div class="sponsor giganet">GigaNet</div>
-      <div class="sponsor gamex">GameX</div>
-      <div class="sponsor procontrollers">ProControllers</div>
-      <div class="sponsor streammaster">StreamMaster</div>
-      <div class="sponsor nexustech">NexusTech</div>
-      <div class="sponsor hyperdrive">HyperDrive</div>
-      <div class="sponsor glitchlabs">GlitchLabs</div>
-    </div>
-  </footer>
-
-  <script>
-    const baseTeams = [
-      "Turbo Titans", "Cyber Falcons", "Pixel Predators", "Neon Ninjas",
-      "Quantum Quakes", "Shadow Sparks", "Vortex Vipers", "Blaze Bandits",
-      "Crimson Crushers", "Phantom Phantoms", "Steel Stallions", "Nova Nomads",
-      "Electric Eagles", "Iron Invaders", "Digital Dragons", "Frost Fighters"
-    ];
-
-    const lowerTeamsPool = [
-      "Beta Blasters", "Retro Rockets", "Code Crushers", "Net Ninjas",
-      "Lan Lancers", "Socket Smashers", "Frame Fighters", "Byte Brawlers",
-      "Ping Panthers", "Data Devils", "DNS Dragons", "RAM Raiders",
-      "Cache Kings", "Port Pirates", "Stack Sabers", "Thread Thieves"
-    ];
-
-    let league = [], lowerLeague = [], history = [], lowerHistory = [], season = 1;
-    let currentRound = 1, lowerCurrentRound = 1;
-    let leagueCalendar = [], lowerLeagueCalendar = [];
-
-    function createInitialLeague() {
-      league = baseTeams.map((name, index) => createTeam(name, 70 + index));
-      lowerLeague = lowerTeamsPool.map((name, index) => createTeam(name, 50 + index));
-      generateCalendar();
-      updateSeasonTitles();
+function convertLettersToNumbers(text){
+  let out = '';
+  for(let i=0;i<text.length;i++){
+    const ch = text[i];
+    if(/[a-zA-Z]/.test(ch)){
+      out += letterToNumber(ch);
+    } else {
+      out += ch;
     }
+  }
+  return out;
+}
 
-    function createTeam(name, skill = 50) {
-      return {
-        name,
-        played: 0,
-        points: 0,
-        wins: 0,
-        losses: 0,
-        championships: 0,
-        skill: Math.min(100, Math.max(30, skill)),
-        form: []
-      };
-    }
-
-    function generateCalendar() {
-      leagueCalendar = [];
-      lowerLeagueCalendar = [];
-      
-      // Generate league calendar (round-robin)
-      const teamsCopy = [...league];
-      const rounds = (teamsCopy.length - 1) * 2;
-      
-      for (let round = 1; round <= rounds; round++) {
-        const roundMatches = [];
-        for (let i = 0; i < teamsCopy.length / 2; i++) {
-          const home = i === 0 ? teamsCopy[0] : teamsCopy[i];
-          const away = teamsCopy[teamsCopy.length - i - 1];
-          if (home && away) {
-            roundMatches.push({ home: home.name, away: away.name, played: false, result: null });
-          }
-        }
-        leagueCalendar.push(roundMatches);
-        
-        // Rotate teams
-        const last = teamsCopy.pop();
-        teamsCopy.splice(1, 0, last);
+function convertNumbersToLetters(text){
+  let result = '';
+  let buffer = '';
+  for(let ch of text){
+    if(/[0-9]/.test(ch)){
+      buffer += ch;
+      if(Number(buffer) > 26){
+        result += numberToLetter(buffer.slice(0,-1));
+        buffer = buffer.slice(-1);
       }
-      
-      // Generate lower league calendar
-      const lowerTeamsCopy = [...lowerLeague];
-      const lowerRounds = (lowerTeamsCopy.length - 1) * 2;
-      
-      for (let round = 1; round <= lowerRounds; round++) {
-        const roundMatches = [];
-        for (let i = 0; i < lowerTeamsCopy.length / 2; i++) {
-          const home = i === 0 ? lowerTeamsCopy[0] : lowerTeamsCopy[i];
-          const away = lowerTeamsCopy[lowerTeamsCopy.length - i - 1];
-          if (home && away) {
-            roundMatches.push({ home: home.name, away: away.name, played: false, result: null });
-          }
-        }
-        lowerLeagueCalendar.push(roundMatches);
-        
-        // Rotate teams
-        const last = lowerTeamsCopy.pop();
-        lowerTeamsCopy.splice(1, 0, last);
+    } else {
+      if(buffer){
+        result += numberToLetter(buffer);
+        buffer = '';
       }
+      result += ch;
     }
+  }
+  if(buffer) result += numberToLetter(buffer);
+  return result;
+}
 
-    function simulateMatch(teamA, teamB) {
-      const skillDiff = teamA.skill - teamB.skill;
-      const randomFactor = Math.random() * 30 - 15;
-      const winChance = 50 + skillDiff * 0.3 + randomFactor;
-      
-      if (Math.random() * 100 < winChance) {
-        adjustSkills(teamA, teamB, true);
-        return teamA;
-      } else {
-        adjustSkills(teamB, teamA, true);
-        return teamB;
-      }
-    }
+const inputEl = document.getElementById('input');
+const outputEl = document.getElementById('output');
+const btnLTN = document.getElementById('lettersToNumbers');
+const btnNTL = document.getElementById('numbersToLetters');
+const btnCopy = document.getElementById('copy');
+const btnClear = document.getElementById('clear');
+const btnDownload = document.getElementById('download');
 
-    function adjustSkills(winner, loser, isMatch) {
-      const skillDiff = winner.skill - loser.skill;
-      const kFactor = isMatch ? 10 : 5;
-      
-      if (isMatch) {
-        const expectedWin = 1 / (1 + Math.pow(10, -skillDiff / 400));
-        const winnerChange = kFactor * (1 - expectedWin);
-        const loserChange = kFactor * (0 - (1 - expectedWin));
-        
-        winner.skill = Math.min(100, Math.max(30, winner.skill + winnerChange));
-        loser.skill = Math.min(100, Math.max(30, loser.skill + loserChange));
-      }
-    }
+btnLTN.addEventListener('click', ()=>{
+  const src = inputEl.value;
+  outputEl.value = convertLettersToNumbers(src);
+});
 
-    function simulateRound() {
-      if (currentRound > leagueCalendar.length) {
-        alert("Sezon już się zakończył!");
-        return;
-      }
-      
-      const roundMatches = leagueCalendar[currentRound - 1];
-      roundMatches.forEach(match => {
-        const homeTeam = league.find(t => t.name === match.home);
-        const awayTeam = league.find(t => t.name === match.away);
-        
-        if (homeTeam && awayTeam) {
-          const winner = simulateMatch(homeTeam, awayTeam);
-          
-          homeTeam.played++;
-          awayTeam.played++;
-          
-          if (winner === homeTeam) {
-            homeTeam.wins++;
-            homeTeam.points += 3;
-            awayTeam.losses++;
-            match.result = `${homeTeam.name} wygrywa`;
-          } else {
-            awayTeam.wins++;
-            awayTeam.points += 3;
-            homeTeam.losses++;
-            match.result = `${awayTeam.name} wygrywa`;
-          }
-          
-          match.played = true;
-          
-          // Update form (last 5 matches)
-          homeTeam.form = homeTeam.form.slice(-4);
-          homeTeam.form.push(winner === homeTeam ? 'W' : 'L');
-          awayTeam.form = awayTeam.form.slice(-4);
-          awayTeam.form.push(winner === awayTeam ? 'W' : 'L');
-        }
-      });
-      
-      league.sort((a, b) => b.points - a.points || b.skill - a.skill);
-      currentRound++;
-      displayLeague();
-      showCurrentRound();
-    }
+btnNTL.addEventListener('click', ()=>{
+  const src = inputEl.value;
+  outputEl.value = convertNumbersToLetters(src);
+});
 
-    function simulateLowerRound() {
-      if (lowerCurrentRound > lowerLeagueCalendar.length) {
-        alert("Sezon 1 Ligi już się zakończył!");
-        return;
-      }
-      
-      const roundMatches = lowerLeagueCalendar[lowerCurrentRound - 1];
-      roundMatches.forEach(match => {
-        const homeTeam = lowerLeague.find(t => t.name === match.home);
-        const awayTeam = lowerLeague.find(t => t.name === match.away);
-        
-        if (homeTeam && awayTeam) {
-          const winner = simulateMatch(homeTeam, awayTeam);
-          
-          homeTeam.played++;
-          awayTeam.played++;
-          
-          if (winner === homeTeam) {
-            homeTeam.wins++;
-            homeTeam.points += 3;
-            awayTeam.losses++;
-            match.result = `${homeTeam.name} wygrywa`;
-          } else {
-            awayTeam.wins++;
-            awayTeam.points += 3;
-            homeTeam.losses++;
-            match.result = `${awayTeam.name} wygrywa`;
-          }
-          
-          match.played = true;
-          
-          // Update form (last 5 matches)
-          homeTeam.form = homeTeam.form.slice(-4);
-          homeTeam.form.push(winner === homeTeam ? 'W' : 'L');
-          awayTeam.form = awayTeam.form.slice(-4);
-          awayTeam.form.push(winner === awayTeam ? 'W' : 'L');
-        }
-      });
-      
-      lowerLeague.sort((a, b) => b.points - a.points || b.skill - a.skill);
-      lowerCurrentRound++;
-      displayLowerLeague();
-      showCurrentLowerRound();
-    }
+btnCopy.addEventListener('click', async ()=>{
+  try{
+    await navigator.clipboard.writeText(outputEl.value);
+    btnCopy.textContent = 'Skopiowano!';
+    setTimeout(()=>btnCopy.textContent = 'Kopiuj wynik',1200);
+  }catch(e){
+    alert('Nie udało się skopiować — użyj Ctrl/Cmd+C.');
+  }
+});
 
-    function simulateMainSeason() {
-      while (currentRound <= leagueCalendar.length) {
-        simulateRound();
-      }
-    }
+btnClear.addEventListener('click', ()=>{
+  inputEl.value = '';
+  outputEl.value = '';
+});
 
-    function simulateLowerSeason() {
-      while (lowerCurrentRound <= lowerLeagueCalendar.length) {
-        simulateLowerRound();
-      }
-    }
+btnDownload.addEventListener('click', ()=>{
+  const blob = new Blob([outputEl.value || ''],{type:'text/plain;charset=utf-8'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'konwerter-wynik.txt';
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+});
 
-    function displayLeague() {
-      const tbody = document.getElementById("main-table");
-      tbody.innerHTML = "";
-
-      league.forEach((team, index) => {
-        const tr = document.createElement("tr");
-        tr.className = index < 2 ? "green" : index >= league.length - 4 ? "red" : "gray";
-        
-        const skillPercentage = Math.min(100, Math.max(0, team.skill));
-        const formDisplay = team.form.length > 0 ? team.form.join(' ') : '-';
-        
-        tr.innerHTML = `
-          <td>${index + 1}</td>
-          <td>${team.name}</td>
-          <td>${team.played}</td>
-          <td>${team.points}</td>
-          <td>${team.wins}</td>
-          <td>${team.losses}</td>
-          <td>
-            ${Math.round(team.skill)}
-            <div class="skill-bar" title="Forma: ${formDisplay}">
-              <div class="skill-fill" style="width: ${skillPercentage}%"></div>
-            </div>
-          </td>
-        `;
-        tbody.appendChild(tr);
-      });
-    }
-
-    function displayLowerLeague() {
-      const tbody = document.getElementById("lower-table");
-      tbody.innerHTML = "";
-
-      lowerLeague.forEach((team, index) => {
-        const tr = document.createElement("tr");
-        tr.className = index < 4 ? "green" : index >= lowerLeague.length - 4 ? "red" : "gray";
-        
-        const skillPercentage = Math.min(100, Math.max(0, team.skill));
-        const formDisplay = team.form.length > 0 ? team.form.join(' ') : '-';
-        
-        tr.innerHTML = `
-          <td>${index + 1}</td>
-          <td>${team.name}</td>
-          <td>${team.played}</td>
-          <td>${team.points}</td>
-          <td>${team.wins}</td>
-          <td>${team.losses}</td>
-          <td>
-            ${Math.round(team.skill)}
-            <div class="skill-bar" title="Forma: ${formDisplay}">
-              <div class="skill-fill" style="width: ${skillPercentage}%"></div>
-            </div>
-          </td>
-        `;
-        tbody.appendChild(tr);
-      });
-    }
-
-    function displayHistory(selector, hist) {
-      const el = document.getElementById(selector);
-      el.innerHTML = hist.length === 0 ? "<p>Brak historii sezonów...</p>" : hist.join("");
-    }
-
-    function recordHistory(teams, title) {
-      const snapshot = teams.map((team, i) => `
-        <tr><td>${i + 1}</td><td>${team.name}</td><td>${team.points}</td><td>${team.wins}</td><td>${team.losses}</td><td>${Math.round(team.skill)}</td></tr>`).join("");
-      return `<h3>${title}</h3>
-        <table>
-          <thead><tr><th>Pozycja</th><th>Drużyna</th><th>Punkty</th><th>W</th><th>L</th><th>Poziom</th></tr></thead>
-          <tbody>${snapshot}</tbody>
-        </table><br/>`;
-    }
-
-    function updateSeasonTitles() {
-      document.getElementById("league-title").textContent = `Aktualna tabela Ekstraligi - Sezon ${season}`;
-      document.getElementById("lower-league-title").textContent = `Aktualna tabela 1 Ligi - Sezon ${season}`;
-    }
-
-    function nextSeason() {
-      // Zapisz historię tylko jeśli sezon się zakończył
-      if (currentRound > leagueCalendar.length) {
-        history.unshift(recordHistory(league, `Sezon ${season} - Ekstraliga`));
-        lowerHistory.unshift(recordHistory(lowerLeague, `Sezon ${season} - 1 Liga`));
-        league[0].championships++;
-      } else {
-        // Jeśli sezon nie zakończony, zapisz obecny stan
-        history.unshift(recordHistory(league, `Przerwany sezon ${season} - Ekstraliga`));
-        lowerHistory.unshift(recordHistory(lowerLeague, `Przerwany sezon ${season} - 1 Liga`));
-      }
-
-      // Relegacja i awans
-      const relegated = league.slice(-4);
-      const promoted = lowerLeague.slice(0, 4);
-
-      // Utwórz nowe ligi z wyrównanymi poziomami
-      league = [
-        ...league.slice(0, 12).map(t => ({ 
-          ...t, 
-          played: 0,
-          points: 0,
-          wins: 0,
-          losses: 0,
-          form: [],
-          skill: Math.min(100, Math.max(60, t.skill + 2))
-        })),
-        ...promoted.map(t => ({
-          ...createTeam(t.name),
-          skill: Math.min(85, Math.max(60, t.skill + 5))
-        }))
-      ];
-      
-      lowerLeague = [
-        ...lowerLeague.slice(4).map(t => ({
-          ...t,
-          played: 0,
-          points: 0,
-          wins: 0,
-          losses: 0,
-          form: [],
-          skill: Math.max(30, Math.min(70, t.skill - 2))
-        })),
-        ...relegated.map(t => ({
-          ...createTeam(t.name),
-          skill: Math.max(40, Math.min(70, t.skill - 5))
-        }))
-      ];
-
-      // Resetuj kalendarz i rundy
-      currentRound = 1;
-      lowerCurrentRound = 1;
-      generateCalendar();
-      season++;
-      updateSeasonTitles();
-      
-      // Wyświetl aktualizacje
-      displayLeague();
-      displayLowerLeague();
-      showCurrentRound();
-    }
-
-    function showCurrentRound() {
-      const calendarContent = document.getElementById("calendar-content");
-      if (currentRound > leagueCalendar.length) {
-        calendarContent.innerHTML = "<p>Sezon zakończony!</p>";
-        return;
-      }
-      
-      const roundMatches = leagueCalendar[currentRound - 1];
-      let html = `<h3>Ekstraliga - Kolejka ${currentRound}</h3>`;
-      
-      roundMatches.forEach(match => {
-        const homeTeam = league.find(t => t.name === match.home);
-        const awayTeam = league.find(t => t.name === match.away);
-        
-        html += `
-          <div class="match-day">
-            <div class="match">
-              <span>${match.home} (${Math.round(homeTeam?.skill || 50)})</span>
-              <span>vs</span>
-              <span>${match.away} (${Math.round(awayTeam?.skill || 50)})</span>
-            </div>
-            <div class="match-result">${match.played ? match.result : "Mecz nie rozegrany"}</div>
-          </div>
-        `;
-      });
-      
-      calendarContent.innerHTML = html;
-    }
-
-    function showCurrentLowerRound() {
-      const calendarContent = document.getElementById("calendar-content");
-      if (lowerCurrentRound > lowerLeagueCalendar.length) {
-        calendarContent.innerHTML = "<p>Sezon 1 Ligi zakończony!</p>";
-        return;
-      }
-      
-      const roundMatches = lowerLeagueCalendar[lowerCurrentRound - 1];
-      let html = `<h3>1 Liga - Kolejka ${lowerCurrentRound}</h3>`;
-      
-      roundMatches.forEach(match => {
-        const homeTeam = lowerLeague.find(t => t.name === match.home);
-        const awayTeam = lowerLeague.find(t => t.name === match.away);
-        
-        html += `
-          <div class="match-day">
-            <div class="match">
-              <span>${match.home} (${Math.round(homeTeam?.skill || 50)})</span>
-              <span>vs</span>
-              <span>${match.away} (${Math.round(awayTeam?.skill || 50)})</span>
-            </div>
-            <div class="match-result">${match.played ? match.result : "Mecz nie rozegrany"}</div>
-          </div>
-        `;
-      });
-      
-      calendarContent.innerHTML = html;
-    }
-
-    function showAllCalendar() {
-      const calendarContent = document.getElementById("calendar-content");
-      let html = "<h3>Kalendarz sezonu Ekstraligi</h3>";
-      
-      leagueCalendar.forEach((round, roundIndex) => {
-        html += `<h4>Kolejka ${roundIndex + 1}</h4>`;
-        
-        round.forEach(match => {
-          const homeTeam = league.find(t => t.name === match.home);
-          const awayTeam = league.find(t => t.name === match.away);
-          
-          html += `
-            <div class="match-day">
-              <div class="match">
-                <span>${match.home} (${Math.round(homeTeam?.skill || 50)})</span>
-                <span>vs</span>
-                <span>${match.away} (${Math.round(awayTeam?.skill || 50)})</span>
-              </div>
-              <div class="match-result">${match.played ? match.result : "Mecz nie rozegrany"}</div>
-            </div>
-          `;
-        });
-      });
-      
-      calendarContent.innerHTML = html;
-    }
-
-    // Initialize tabs
-    document.querySelectorAll(".tab").forEach(tab => {
-      tab.addEventListener("click", () => {
-        document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
-        tab.classList.add("active");
-        document.querySelectorAll(".tab-content").forEach(tc => tc.classList.remove("active"));
-        document.getElementById(tab.dataset.tab).classList.add("active");
-
-        if (tab.dataset.tab === "history") displayHistory("history-content", history);
-        if (tab.dataset.tab === "lower-history") displayHistory("lower-history-content", lowerHistory);
-        if (tab.dataset.tab === "calendar") showCurrentRound();
-      });
-    });
-
-    // Initialize league
-    createInitialLeague();
-    displayLeague();
-    displayLowerLeague();
-    showCurrentRound();
-  </script>
+inputEl.addEventListener('keydown', (e)=>{
+  if(e.key === 'Enter' && (e.ctrlKey || e.metaKey)){
+    e.preventDefault();
+    btnLTN.click();
+  }
+  if(e.key === 'Enter' && e.shiftKey){
+    e.preventDefault();
+    btnNTL.click();
+  }
+});
+</script>
 </body>
 </html>
